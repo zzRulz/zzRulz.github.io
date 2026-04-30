@@ -196,6 +196,23 @@
   /* individual banner chars for animation */
   .ascii-banner .bc { display: inline; transition: none; }
 
+  /* SCROLL REVEAL */
+  .prompt, .section-label {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .prompt.revealed, .section-label.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  /* First prompt (hero) is always visible */
+  .prompt.no-reveal, .section-label.no-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
   /* STATS */
   .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: var(--gap-l); }
   .stat { background: var(--bg); padding: var(--gap-m) var(--gap-l); }
@@ -231,13 +248,17 @@
   .project-filters .count { color: var(--fg-faint); margin-left: var(--gap-m); }
   .projects-table { border-top: 1px solid var(--border); }
   .project {
-    display: grid; grid-template-columns: 32px 1fr auto;
-    gap: var(--gap-m); align-items: flex-start;
-    padding: var(--gap-m) 0; border-bottom: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    padding: var(--gap-m) 0 var(--gap-m) 20px; border-bottom: 1px solid var(--border);
     cursor: pointer; transition: background 0.15s; position: relative;
   }
+  .project-main { display: flex; gap: var(--gap-m); align-items: flex-start; }
+  .project-idx { color: var(--fg-faint); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; min-width: 32px; flex-shrink: 0; }
+  .project-side { align-self: flex-start; text-align: right; font-size: var(--fs-xs); color: var(--fg-faint); font-variant-numeric: tabular-nums; min-width: 80px; flex-shrink: 0; margin-left: auto; }
   .project:hover { background: var(--bg-2); }
-  .project:hover::before { content: '▸'; position: absolute; left: -16px; top: var(--gap-m); color: var(--accent); }
+  .project::before { content: ''; position: absolute; left: 6px; top: var(--gap-m); color: var(--accent); }
+  .project:hover::before { content: '▸'; }
+  .project.open::before { content: '▾'; }
   .project-idx { color: var(--fg-faint); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
   .project-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
   .project-head { display: flex; align-items: baseline; gap: var(--gap-m); flex-wrap: wrap; }
@@ -249,14 +270,16 @@
   .project-side { text-align: right; font-size: var(--fs-xs); color: var(--fg-faint); font-variant-numeric: tabular-nums; min-width: 80px; }
   .project-side .status { display: block; color: var(--accent); margin-top: 2px; }
   .project-side .status.offline { color: var(--fg-faint); }
-  .project-detail { grid-column: 1/-1; display: none; padding: var(--gap-l) 0 var(--gap-m) 44px; border-top: 1px dashed var(--border); margin-top: var(--gap-m); cursor: default; }
+  .project-detail { display: none; padding: var(--gap-l) 0 var(--gap-m) 44px; border-top: 1px dashed var(--border); margin-top: var(--gap-m); cursor: default; }
   .project.open .project-detail { display: block; }
-  .project.open::before { content: '▾'; }
+
   .project.open { background: var(--bg-2); }
   .project-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap-l); margin-top: var(--gap-m); }
   .detail-block h4 { font-size: var(--fs-xs); color: var(--fg-faint); text-transform: uppercase; letter-spacing: 0.15em; margin: 0 0 var(--gap-s); font-weight: 400; }
   .detail-block ul { list-style: none; padding: 0; margin: 0; font-size: var(--fs-sm); color: var(--fg); }
-  .detail-block ul li { padding: 3px 0; border-bottom: 1px dotted var(--border); display: flex; justify-content: space-between; gap: var(--gap-m); }
+  .detail-block ul li { padding: 3px 0; border-bottom: 1px dotted var(--border); display: flex; justify-content: space-between; gap: var(--gap-m); align-items: baseline; }
+  .detail-block ul li span:first-child { flex-shrink: 0; }
+  .detail-block ul li .v { text-align: right; }
   .detail-block ul li .v { color: var(--fg-dim); }
   .ascii-rack { font-family: var(--font-mono); font-size: 10px; line-height: 1.15; color: var(--fg-dim); white-space: pre; background: var(--bg); border: 1px solid var(--border); padding: var(--gap-m); margin-top: var(--gap-m); overflow-x: auto; }
   .ascii-rack .lit { color: var(--accent); }
@@ -393,8 +416,9 @@
 
   #iterm {
     position: fixed; z-index: 300;
-    width: 620px; height: 420px;
-    bottom: 80px; left: 40px;
+    width: 760px; height: 500px;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
     background: var(--bg); border: 1px solid var(--border-bright);
     display: none; flex-direction: column;
     box-shadow: 0 12px 48px rgba(0,0,0,0.6);
@@ -455,16 +479,13 @@
   .tl-sep { border: none; border-top: 1px dashed var(--border); margin: 4px 0; }
 
   /* Snake game */
-  #snake-canvas {
+  #breakout-canvas {
     font-family: var(--font-mono); font-size: 13px; line-height: 1.15;
     white-space: pre; color: var(--fg-dim); display: block;
     margin: 4px 0; background: var(--bg-2); border: 1px solid var(--border);
     padding: 6px 10px; outline: none;
     user-select: none;
   }
-  #snake-canvas .s-head { color: var(--accent); }
-  #snake-canvas .s-body { color: var(--accent-dim); }
-  #snake-canvas .s-food { color: var(--red); }
 
   /* ═══════════════════════════════════════════ */
   /*  ADMIN CMS OVERLAY                          */
@@ -977,7 +998,7 @@ const DEFAULT_DATA = {
     loc: 'Bastia, Haute-Corse, FR',
     status: '● disponible — ouvert aux missions et postes'
   },
-  bio: "Au-delà du maintien opérationnel, je sais identifier et intégrer des solutions logicielles pour simplifier les processus quand le besoin s'en fait sentir. J'intègre des LLM locaux souverains et des agents IA pour automatiser mes pipelines et optimiser la maintenance, tout en conservant un contrôle total sur l'infrastructure et la confidentialité. De la mise en service à la stratégie de backup, je garantis une infrastructure moderne, sécurisée et sous contrôle.",
+  bio: "Au-delà du maintien opérationnel, j'identifie et intègre des solutions pour simplifier les processus — y compris des modèles de langage locaux (Ollama) pour automatiser mes pipelines de maintenance, tout en gardant la maîtrise complète de l'infrastructure et la confidentialité des données. De la mise en service à la stratégie de backup, je garantis une infrastructure moderne, sécurisée et sous contrôle.",
   contactNote: 'Disponible pour missions, interventions ponctuelles ou postes en CDI/CDD.|Zone d\'intervention : Haute-Corse, déplacements possibles.',
   stats: [
     { label: 'Racks déployés', value: '42', unit: '' },
@@ -1008,7 +1029,7 @@ const PROJECTS = [
   { id:'homeassistant', cat:'network', title:'Home Automation — Home Assistant', type:'domotique / IoT / YAML', desc:'Déploiement et configuration avancée de Home Assistant (VM QEMU sur Proxmox) pour l\'automatisation complète du domicile. Intégration Zigbee (Zigbee2MQTT), capteurs ESP32 custom, volets roulants, éclairage, robot aspirateur, prises connectées Tapo P110, clamp sensors Zenismart, lecture Linky via ZlinkyTIC, onduleur solaire Soria. Tableaux de bord Bubble UI, configuration YAML manuelle, Frigate pour la détection vidéo.', meta:['2023 — now','Home Assistant','Zigbee2MQTT','ESP32'], specs:{'plateforme':'Home Assistant — VM QEMU / Proxmox','protocoles':'Zigbee (Z2M) · WiFi · MQTT · ESP32','intégrations clés':'Tapo P110 · ZlinkyTIC Linky · Soria solaire · Frigate NVR','interface':'Bubble UI · YAML custom','accès distant':'Nginx Proxy Manager + Tailscale'}, stats:{'entités':'~728','domaines':'32','pièces':'10','automations':'en cours — jamais fini !'} },
   { id:'webforce3', cat:'formation', title:'Formation TSSR — WebForce3', type:'formation / lab pratique', desc:'Bootcamp intensif pour l\'obtention du titre Technicien Supérieur Systèmes et Réseaux (TSSR). Formation axée sur la pratique : labs réseau Cisco CLI, virtualisation VMware ESXi, administration Windows Server & Linux, câblage structuré et ToIP. Stage de fin de formation chez Gemini IT (Bastia).', meta:['2022 — 2023','Bastia','TSSR','WebForce3'], specs:{'titre':'Technicien Supérieur Systèmes & Réseaux','réseau':'Cisco CLI — routeurs & switches','virtualisation':'VMware ESXi — déploiement VMs Windows Server','admin':'Active Directory · GPO · PowerShell · Linux / Unix','autres':'ToIP · Câblage structuré · Stage Gemini IT'}, stats:{'durée':'6 mois','format':'bootcamp intensif','stage':'Gemini IT — Bastia','titre obtenu':'TSSR'} },
   { id:'gemini-it', cat:'rack', title:'Stage — Gemini IT', type:'rack / déploiement / migration', desc:'Stage de fin de formation TSSR chez Gemini IT (Bastia) : remplacement de baies serveur et onduleurs, migration du stockage NAS Synology vers SAN Dell EMC PowerEdge SAS, déploiement et maintenance de postes utilisateurs, inventaire complet de la salle serveur.', meta:['2023','Bastia','Dell EMC','CyberPower'], specs:{'serveur':'Dell EMC PowerEdge ×1','storage':'Dell EMC PowerEdge SAS ×2','migration':'NAS Synology → SAN Dell EMC','onduleur':'CyberPower Rackable (remplacement)'}, stats:{'durée':'2 semaines','unités SAS':'2','onduleurs remplacés':'1','postes traités':'plusieurs'} },
-  { id:'lagrange-it', cat:'network', title:'Gestion IT — Restaurant La Grange', type:'réseau / infrastructure / maintenance', desc:'Gestion IT autodidacte complète du restaurant en parallèle du poste de Chef de Salle : déploiement et configuration des points d\'accès WiFi, segmentation réseau par VLANs (guest, staff), câblage structuré, maintenance hardware et imprimantes. Infrastructure réseau centralisée sur routeur Synology.', meta:['2008 — 2022','Aix-en-Provence','UniFi AP','Synology'], specs:{'gateway':'Synology Router','APs':'déploiement & configuration WiFi','VLANs':'guest · staff','câblage':'structuré — réalisé en autonomie','maintenance':'hardware · imprimantes · périphériques'}, stats:{'années de gestion':'14','VLANs configurés':'2+','infrastructure':'déployée from scratch','incidents':'en autonomie complète'} },
+  { id:'lagrange-it', cat:'network', title:'Gestion IT — Restaurant La Grange', type:'réseau / infrastructure / maintenance', desc:'Gestion IT autodidacte complète du restaurant en parallèle du poste de Chef de Salle : déploiement et configuration des points d\'accès WiFi, segmentation réseau par VLANs (guest, staff), câblage structuré, maintenance hardware et imprimantes. Infrastructure réseau centralisée sur routeur Synology.', meta:['2008 — 2022','Aix-en-Provence','TP-Link AP','Synology'], specs:{'gateway':'Synology Router','APs':'déploiement & configuration WiFi','VLANs':'guest · staff','câblage':'structuré — réalisé en autonomie','maintenance':'hardware · imprimantes · périphériques'}, stats:{'années de gestion':'14','VLANs configurés':'2+','infrastructure':'déployée from scratch','incidents':'en autonomie complète'} },
   { id:'cybercafe-it', cat:'maint', title:'Technicien itinérant — Cybercafés Haute-Corse', type:'support / déploiement / maintenance', desc:'Interventions techniques itinérantes dans plusieurs cybercafés en Haute-Corse : déploiement de postes via MDT et Norton Ghost, maintenance hardware & software, configuration réseau, remise en état de machines défectueuses. Gestion autonome des parcs informatiques sans supervision.', meta:['2003 — 2006','Haute-Corse','MDT','Norton Ghost'], specs:{'déploiement':'MDT · Norton Ghost','maintenance':'hardware & software · OS Windows','réseau':'configuration & dépannage','périmètre':'plusieurs sites itinérants','autonomie':'totale — sans supervision'}, stats:{'années':'3','sites':'plusieurs cybercafés','type':'curatif & préventif','outils':'MDT · Norton Ghost · Windows'} }
 ];
 
@@ -1021,10 +1042,10 @@ const SKILLS = [
 ];
 
 let TIMELINE = [
-  { date:'2024 — 2026', title:'FabLab 3D Creazione', where:'— Association · Bastia', desc:'Formation aux outils du FabLab : Impression 3D FDM et résine, découpe et gravure laser, Fusion 360.', side:'' },
-  { date:'2022 — 2023', title:'Formation Technicien Supérieur Systèmes et Réseaux', where:'— WebForce3 · Bastia', desc:'Bootcamp TSSR · Active Directory, GPO, PowerShell, Linux / Unix · Configuration routeurs & switches Cisco (CLI) · Virtualisation VMware ESXi — déploiement de VMs Windows Server · ToIP · Câblage structuré.', side:'diplôme' },
-  { date:'2008 — 2022', title:'Chef de Salle', where:'— Restaurant La Grange · Aix-en-Provence', desc:'Chef de Salle · Gestion et approvisionnement des stocks · Gestion IT autodidacte : installation & configuration APs, VLANs WiFi (guest/staff), câblage, maintenance imprimantes · Infrastructure réseau sur routeur Synology.', side:'' },
-  { date:'2006 — 2007', title:'Night Audit', where:'— Novotel Sénart · Saint-Pierre du Perray', desc:'Réception & accueil clients (nuit) · Collecte et consolidation de données multi-sites vers Excel · Sauvegarde des données Hotix sur serveur à bandes LTO.', side:'' },
+  { date:'2024 — 2026', title:'Association FabLab 3D Creazione', where:'— Bastia', desc:'Formation aux outils du FabLab : Impression 3D FDM et résine, découpe et gravure laser, Fusion 360.', side:'' },
+  { date:'2022 — 2023', title:'Formation WebForce3 Technicien Supérieur Systèmes et Réseaux', where:'— Bastia', desc:'Bootcamp TSSR · Active Directory, GPO, PowerShell, Linux / Unix · Configuration routeurs & switches Cisco (CLI) · Virtualisation VMware ESXi — déploiement de VMs Windows Server · ToIP · Câblage structuré.', side:'diplôme' },
+  { date:'2008 — 2022', title:'Chef de Salle Restaurant La Grange', where:'— Aix-en-Provence', desc:'Chef de Salle · Gestion et approvisionnement des stocks · Gestion IT autodidacte : installation & configuration APs, VLANs WiFi (guest/staff), câblage, maintenance imprimantes · Infrastructure réseau sur routeur Synology.', side:'' },
+  { date:'2006 — 2007', title:'Night Audit Novotel Sénart', where:'— Saint-Pierre du Perray', desc:'Réception & accueil clients (nuit) · Collecte et consolidation de données multi-sites vers Excel · Sauvegarde des données Hotix sur serveur à bandes LTO.', side:'' },
   { date:'2003 — 2006', title:'Technicien itinérant — Cybercafés', where:'— Haute-Corse', desc:'Déploiement postes (MDT, Norton Ghost) · Maintenance hardware & software · Configuration postes Windows · Interventions sur site dans plusieurs cybercafés en Haute-Corse.', side:'' },
   { date:'2001 — 2003', title:'Formation InterActif', where:'— Ville Di Pietrabugno', desc:'Création de sites Web (HTML, Dreamweaver, Flash) · Stages : Micro.exe (vente & réparations informatique) · SigmaFormation (maintenance informatique en structures de formation régionales).', side:'formation' }
 ];
@@ -1097,23 +1118,25 @@ function renderProjects(filter='all') {
   document.getElementById('filter-count').textContent = `${filtered.length} projet${filtered.length>1?'s':''}`;
   container.innerHTML = filtered.map((p,idx) => `
     <div class="project" data-id="${p.id}">
-      <div class="project-idx">${String(idx+1).padStart(2,'0')}</div>
-      <div class="project-body">
-        <div class="project-head"><div class="project-title">${p.title}</div><div class="project-type">// ${p.type}</div></div>
-        <div class="project-desc">${p.desc}</div>
-        <div class="project-meta">${p.meta.map(m=>`<span class="tag">${m}</span>`).join('')}</div>
-        <div class="project-detail">
-          <div class="project-detail-grid">
-            <div class="detail-block"><h4>// specs</h4><ul>${Object.entries(p.specs).map(([k,v])=>`<li><span>${k}</span><span class="v">${v}</span></li>`).join('')}</ul></div>
-            <div class="detail-block"><h4>// résultats</h4><ul>${Object.entries(p.stats).map(([k,v])=>`<li><span>${k}</span><span class="v">${v}</span></li>`).join('')}</ul></div>
-          </div>
-          ${p.rack ? `<div class="ascii-rack">${p.rack}</div>` : ''}
+      <div class="project-main">
+        <div class="project-idx">${String(idx+1).padStart(2,'0')}</div>
+        <div class="project-body">
+          <div class="project-head"><div class="project-title">${p.title}</div><div class="project-type">// ${p.type}</div></div>
+          <div class="project-desc">${p.desc}</div>
+          <div class="project-meta">${p.meta.map(m=>`<span class="tag">${m}</span>`).join('')}</div>
         </div>
+        <div class="project-side">${p.meta[0]||''}<span class="status ${ ['rulz-homelab','unifi-network','homeassistant'].includes(p.id) ? '' : 'offline' }">${ ['rulz-homelab','unifi-network','homeassistant'].includes(p.id) ? '● live' : '● shipped' }</span></div>
       </div>
-      <div class="project-side">${p.meta[0]||''}<span class="status ${p.id==='helpdesk'?'':'offline'}">${p.id==='helpdesk'?'● live':'● shipped'}</span></div>
+      <div class="project-detail">
+        <div class="project-detail-grid">
+          <div class="detail-block"><h4>// specs</h4><ul>${Object.entries(p.specs).map(([k,v])=>`<li><span>${k}</span><span class="v">${v}</span></li>`).join('')}</ul></div>
+          <div class="detail-block"><h4>// résultats</h4><ul>${Object.entries(p.stats).map(([k,v])=>`<li><span>${k}</span><span class="v">${v}</span></li>`).join('')}</ul></div>
+        </div>
+        ${p.rack ? `<div class="ascii-rack">${p.rack}</div>` : ''}
+      </div>
     </div>`).join('');
   container.querySelectorAll('.project').forEach(el => {
-    el.addEventListener('click', e => { if(e.target.closest('.project-detail')) return; el.classList.toggle('open'); });
+    el.addEventListener('click', e => { if(e.target.closest('.project-detail')) return; const isOpen = el.classList.contains('open'); container.querySelectorAll('.project').forEach(p => p.classList.remove('open')); if(!isOpen) el.classList.add('open'); });
   });
 }
 
@@ -1577,6 +1600,8 @@ function renderContactCells() {
   const cells = (DATA.contactCells || []).slice(0, DATA.contactCellCount ?? 4);
   if (!cells.length) { grid.style.display = 'none'; return; }
   grid.style.display = '';
+  const cols = cells.length <= 3 ? cells.length : Math.ceil(cells.length / 2);
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   grid.innerHTML = cells.map((c, i) => {
     const hint = c.action === 'copy' ? 'cliquer pour copier ↵'
                : c.action === 'open' ? 'ouvrir ↗'
@@ -1842,22 +1867,29 @@ function initInteractiveTerm() {
   const input  = document.getElementById('iterm-input');
   const close  = document.getElementById('iterm-close');
   let history  = [], histIdx = -1;
-  let snakeRunning = false, snakeTick = null;
+  let breakoutRunning = false, breakoutTick = null;
 
   function openTerm() {
     iterm.classList.add('open');
     btn.classList.add('open');
+    // Convert center transform to absolute position so drag works
+    var rect = iterm.getBoundingClientRect();
+    iterm.style.transform = 'none';
+    iterm.style.top = rect.top + 'px';
+    iterm.style.left = rect.left + 'px';
     setTimeout(() => input.focus(), 320);
   }
   function closeTerm() {
     iterm.classList.remove('open');
     btn.classList.remove('open');
-    stopSnake();
+    stopBreakout();
   }
   btn.addEventListener('click', () => iterm.classList.contains('open') ? closeTerm() : openTerm());
   close.addEventListener('click', closeTerm);
   document.addEventListener('keydown', e => {
     if (e.key === '`' && e.ctrlKey) { e.preventDefault(); iterm.classList.contains('open') ? closeTerm() : openTerm(); }
+    if (e.key === 'Escape' && iterm.classList.contains('open')) { e.preventDefault(); closeTerm(); }
+    if (breakoutRunning) { handleBreakoutKey(e); e.preventDefault(); }
   });
 
   // ── Drag ──────────────────────────────────
@@ -1897,12 +1929,10 @@ function initInteractiveTerm() {
   blank();
 
   // ── Tab autocomplete ─────────────────────
-  var ALL_CMDS = ['help','whoami','ls','cat ','skills','contact','uname','date','uptime','echo ','clear','snake','hack','exit','sudo'];
+  var ALL_CMDS = ['help','whoami','ls','cat ','skills','contact','uname','date','uptime','echo ','clear','breakout','exit','sudo'];
   var tabMatches = [], tabIdx = -1;
 
   input.addEventListener('keydown', function(e) {
-    if (snakeRunning) { handleSnakeKey(e); e.preventDefault(); return; }
-
     if (e.key === 'Tab') {
       e.preventDefault();
       var val = input.value;
@@ -1949,8 +1979,7 @@ function initInteractiveTerm() {
       case 'contact': cmdContact(); break;
       case 'uname':   cmdUname(); break;
       case 'clear':   body.innerHTML = ''; break;
-      case 'snake':   startSnake(); break;
-      case 'hack':    cmdHack(); break;
+      case 'breakout': startBreakout(); break;
       case 'date':    line(new Date().toLocaleString('fr-FR')); break;
       case 'uptime':  line('up ' + Math.floor((Date.now()-new Date('2020-09-01'))/(864e5)) + 'd 4h 12m'); break;
       case 'echo':    line(escHtml(args.join(' '))); break;
@@ -1975,8 +2004,7 @@ function initInteractiveTerm() {
       ['uptime','temps en poste'],
       ['echo …','afficher du texte'],
       ['clear','vider le terminal'],
-      ['snake','🐍 mini-jeu snake (←↑↓→ pour jouer)'],
-      ['hack','💻 séquence de hacking'],
+      ['breakout','🧱 mini-jeu breakout (← → pour jouer)'  ],
       ['exit','fermer le terminal'],
     ];
     cmds.forEach(function(c) {
@@ -2054,109 +2082,144 @@ function initInteractiveTerm() {
     line('Linux lenormand-srv 6.8.0-RulzOS #1 SMP PREEMPT Haute-Corse x86_64 GNU/Linux');
   }
 
-  function cmdHack() {
-    var targets = ['firewall.internal','192.168.1.1','switch-core-a','nas-backup','vcenter.prod'];
-    var target = targets[Math.floor(Math.random()*targets.length)];
-    var steps = [
-      'Initialisation de la séquence d\'accès...',
-      '▶ Scan des ports sur <span style="color:var(--blue)">' + target + '</span>...',
-      '▶ Port 22/tcp <span class="tl-acc">OPEN</span> · Port 443/tcp <span class="tl-acc">OPEN</span> · Port 3389/tcp <span class="tl-err">CLOSED</span>',
-      '▶ Tentative SSH — envoi payload RSA-4096...',
-      '▶ Bypass couche 2 <span class="tl-acc">✓</span> — ARP spoofing actif',
-      '▶ Injection VLAN 42... <span class="tl-acc">succès</span>',
-      '▶ Déchiffrement hash <span class="tl-faint">[████████████] 100%</span>',
-      '▶ Accès root obtenu — bienvenue, <span class="tl-acc">damien</span>',
-      '<span class="tl-err">⚠</span>  IDS déclenché — connexion coupée...',
-      '<span class="tl-faint">Session terminée. Logs effacés.</span>',
-    ];
-    var i = 0;
-    var iv = setInterval(function() {
-      if (i >= steps.length) { clearInterval(iv); scroll(); return; }
-      line(steps[i++]);
-      scroll();
-    }, 320);
-  }
+  /* ── BREAKOUT ───────────────────────────────── */
+  var bBall, bPad, bBricks, bScore, bLives;
 
-  /* ── SNAKE ───────────────────────────────── */
-  var SW=28, SH=14, snake, sDir, sFood, sScore;
+  var BCW=400, BCH=300, BCOLS=20, BROWS=6;
+  var bBallPx, bPadPx, bBricksData, bAnimFrame;
 
-  function startSnake() {
-    stopSnake();
-    snake = [{x:14,y:7},{x:13,y:7},{x:12,y:7}];
-    sDir = {x:1,y:0};
-    sScore = 0;
-    placeFood();
-    snakeRunning = true;
-    input.placeholder = '← ↑ ↓ → · Q pour quitter';
+  function startBreakout() {
+    stopBreakout();
+    bScore = 0; bLives = 3;
+    var brickW = BCW/BCOLS, brickH = 18;
+    bBallPx = {x:BCW/2, y:BCH-60, vx:3, vy:-3, r:6};
+    bPadPx = {x:BCW/2-40, w:80, y:BCH-20, h:10};
+    bBricksData = [];
+    var colors = ['#e67f7f','#ffb454','#7fe67f','#7fd4e6','#b87fe6','#e67fc4'];
+    for (var r=0;r<BROWS;r++) for (var c=0;c<BCOLS;c++)
+      bBricksData.push({x:c*brickW, y:30+r*brickH, w:brickW-2, h:brickH-2, alive:true, color:colors[r%colors.length]});
+    breakoutRunning = true;
+    input.placeholder = '← → pour jouer · Q pour quitter';
     input.disabled = true;
 
-    var canvas = document.getElementById('snake-canvas');
-    if (!canvas) {
-      canvas = document.createElement('div');
-      canvas.id = 'snake-canvas';
-      body.appendChild(canvas);
-    }
-    line('<span class="tl-faint">🐍 SNAKE — score: <span id="snake-score">0</span> — flèches pour jouer, Q pour quitter</span>');
+    var existing = document.getElementById('breakout-canvas');
+    if (existing) existing.remove();
+    var cv = document.createElement('canvas');
+    cv.id = 'breakout-canvas'; cv.width = BCW; cv.height = BCH;
+    body.appendChild(cv);
+
+    line('<span class="tl-faint">🧱 BREAKOUT — score: <span id="b-score">0</span> · vies: <span id="b-lives">3</span> — ← → pour jouer, Q pour quitter</span>');
     scroll();
-    drawSnake(canvas);
 
-    snakeTick = setInterval(function() {
-      if (!snakeRunning) return;
-      var head = {x:(snake[0].x+sDir.x+SW)%SW, y:(snake[0].y+sDir.y+SH)%SH};
-      if (snake.some(function(s){ return s.x===head.x&&s.y===head.y; })) { endSnake(canvas); return; }
-      snake.unshift(head);
-      if (head.x===sFood.x&&head.y===sFood.y) { sScore++; placeFood(); }
-      else snake.pop();
-      drawSnake(canvas);
-      var sc = document.getElementById('snake-score');
-      if (sc) sc.textContent = sScore;
-      scroll();
-    }, 130);
-  }
-
-  function placeFood() {
-    do { sFood={x:Math.floor(Math.random()*SW),y:Math.floor(Math.random()*SH)}; }
-    while(snake && snake.some(function(s){ return s.x===sFood.x&&s.y===sFood.y; }));
-  }
-
-  function drawSnake(canvas) {
-    var out = '┌' + '─'.repeat(SW) + '┐\n';
-    for (var y=0;y<SH;y++) {
-      out += '│';
-      for (var x=0;x<SW;x++) {
-        if (x===snake[0].x&&y===snake[0].y) out+='<span style="color:var(--accent)">@</span>';
-        else if (snake.slice(1).some(function(s){return s.x===x&&s.y===y;})) out+='<span style="color:var(--accent-dim)">o</span>';
-        else if (x===sFood.x&&y===sFood.y) out+='<span style="color:var(--red)">$</span>';
-        else out+=' ';
+    function loop() {
+      if (!breakoutRunning) return;
+      var ctx = cv.getContext('2d');
+      // Update ball
+      bBallPx.x += bBallPx.vx;
+      bBallPx.y += bBallPx.vy;
+      // Wall bounce
+      if (bBallPx.x - bBallPx.r <= 0 || bBallPx.x + bBallPx.r >= BCW) bBallPx.vx *= -1;
+      if (bBallPx.y - bBallPx.r <= 0) bBallPx.vy *= -1;
+      // Paddle bounce
+      if (bBallPx.vy > 0 && bBallPx.y + bBallPx.r >= bPadPx.y &&
+          bBallPx.x >= bPadPx.x && bBallPx.x <= bPadPx.x + bPadPx.w) {
+        bBallPx.vy = -Math.abs(bBallPx.vy);
+        bBallPx.vx = ((bBallPx.x - (bPadPx.x + bPadPx.w/2)) / (bPadPx.w/2)) * 5;
       }
-      out += '│\n';
+      // Brick collision
+      bBricksData.forEach(function(br) {
+        if (!br.alive) return;
+        if (bBallPx.x+bBallPx.r > br.x && bBallPx.x-bBallPx.r < br.x+br.w &&
+            bBallPx.y+bBallPx.r > br.y && bBallPx.y-bBallPx.r < br.y+br.h) {
+          br.alive = false; bScore++; bBallPx.vy *= -1;
+          var sc=document.getElementById('b-score'); if(sc) sc.textContent=bScore;
+        }
+      });
+      // Ball lost
+      if (bBallPx.y - bBallPx.r > BCH) {
+        bLives--;
+        var lv=document.getElementById('b-lives'); if(lv) lv.textContent=bLives;
+        if (bLives <= 0) { endBreakout(); return; }
+        bBallPx = {x:BCW/2, y:BCH-60, vx:3, vy:-3, r:6};
+      }
+      // Win
+      if (bBricksData.every(function(b){return !b.alive;})) {
+        stopBreakout();
+        line('<span class="tl-acc">YOU WIN !</span> — score: <span class="tl-acc">'+bScore+'</span> · tape <span class="tl-acc">breakout</span> pour rejouer');
+        scroll(); return;
+      }
+      // Draw
+      var accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7fe67f';
+      var blue   = getComputedStyle(document.documentElement).getPropertyValue('--blue').trim()   || '#7fa8e6';
+      var bg     = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()     || '#0c0d0a';
+      var border = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#2a2b26';
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, BCW, BCH);
+      // Bricks
+      bBricksData.forEach(function(br) {
+        if (!br.alive) return;
+        ctx.fillStyle = br.color; ctx.fillRect(br.x, br.y, br.w, br.h);
+        ctx.strokeStyle = bg; ctx.lineWidth = 1; ctx.strokeRect(br.x, br.y, br.w, br.h);
+      });
+      // Paddle
+      ctx.fillStyle = blue; ctx.fillRect(bPadPx.x, bPadPx.y, bPadPx.w, bPadPx.h);
+      // Ball
+      ctx.beginPath(); ctx.arc(bBallPx.x, bBallPx.y, bBallPx.r, 0, Math.PI*2);
+      ctx.fillStyle = accent; ctx.fill();
+      // Border
+      ctx.strokeStyle = border; ctx.lineWidth = 1; ctx.strokeRect(0, 0, BCW, BCH);
+
+      bAnimFrame = requestAnimationFrame(loop);
     }
-    out += '└' + '─'.repeat(SW) + '┘';
-    canvas.innerHTML = out;
+    bAnimFrame = requestAnimationFrame(loop);
   }
 
-  function endSnake(canvas) {
-    stopSnake();
-    line('<span class="tl-err">GAME OVER</span> — score final: <span class="tl-acc">' + sScore + '</span> · tape <span class="tl-acc">snake</span> pour rejouer');
+  function endBreakout() {
+    stopBreakout();
+    line('<span class="tl-err">GAME OVER</span> — score: <span class="tl-acc">'+bScore+'</span> · tape <span class="tl-acc">breakout</span> pour rejouer');
     scroll();
   }
 
-  function stopSnake() {
-    if (snakeTick) { clearInterval(snakeTick); snakeTick=null; }
-    snakeRunning = false;
+  function stopBreakout() {
+    if (bAnimFrame) { cancelAnimationFrame(bAnimFrame); bAnimFrame=null; }
+    if (breakoutTick) { clearInterval(breakoutTick); breakoutTick=null; }
+    breakoutRunning = false;
     input.placeholder = '';
     input.disabled = false;
     input.focus();
   }
 
-  function handleSnakeKey(e) {
-    var map = {ArrowUp:{x:0,y:-1},ArrowDown:{x:0,y:1},ArrowLeft:{x:-1,y:0},ArrowRight:{x:1,y:0}};
-    if (map[e.key]) {
-      var nd = map[e.key];
-      if (nd.x !== -sDir.x || nd.y !== -sDir.y) sDir = nd;
-    }
-    if (e.key==='q'||e.key==='Q'||e.key==='Escape') endSnake(document.getElementById('snake-canvas'));
+  function handleBreakoutKey(e) {
+    if (e.key==='ArrowLeft')  bPadPx.x = Math.max(0, bPadPx.x-20);
+    if (e.key==='ArrowRight') bPadPx.x = Math.min(BCW-bPadPx.w, bPadPx.x+20);
+    if (e.key==='q'||e.key==='Q'||e.key==='Escape') endBreakout();
   }
+
+  /* ── SCROLL REVEAL ───────────────────────────── */
+  (function() {
+    var prompts = document.querySelectorAll('.prompt, .section-label');
+    // First prompt (hero) is always visible
+    if (prompts[0]) prompts[0].classList.add('no-reveal');
+
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting && !entry.target.classList.contains('revealed')) {
+          var el = entry.target;
+          var delay = el.dataset.revealDelay || 0;
+          setTimeout(function() {
+            el.classList.add('revealed');
+          }, parseInt(delay));
+          observer.unobserve(el); // ne se rejoue pas
+        }
+      });
+    }, { threshold: 0.2 });
+
+    prompts.forEach(function(el, i) {
+      if (!el.classList.contains('no-reveal')) {
+        el.dataset.revealDelay = i * 60;
+        observer.observe(el);
+      }
+    });
+  })();
 }
 </script>
 </body>
